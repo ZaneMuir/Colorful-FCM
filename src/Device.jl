@@ -27,6 +27,9 @@ lens = Dict(
 )
 
 ThermoFisher = FCMDevice("ThermoFisher", lasers, lens)
+testdevice = FCMDevice("testdevice",
+    Dict(:laser1 => 350, :laser2=>500),
+    Dict(:laser1 => [(450,30)], :laser2 => [(700,50), (550,40)]))
 
 function getcolornames(device::Device.FCMDevice)
     [name for (name, _) in device.lasers]
