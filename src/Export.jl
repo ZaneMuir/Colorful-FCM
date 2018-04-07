@@ -12,10 +12,10 @@ in the meantime, we also need to re-organize the data structure into dict type.
 
 return [markers, dyes_name, dyes_brightness, template_mat, interaction_map]
 """
-function data_simplification(template, interaction, rawdata)
-    markers = [String(item) for item in rawdata.markers]
-    dyes_name = [String(item.name) for item in rawdata.dyes]
-    dyes_brightness = [item.brightness for item in rawdata.dyes]
+function data_simplification(template, interaction, neodata)
+    markers = [String(item) for item in neodata.markers]
+    dyes_name = [String(item.name) for item in neodata.dyes]
+    dyes_brightness = [item.brightness for item in neodata.dyes]
     template_mat = template[:,:,1]
     interaction_map = begin
         result = Dict{String, Dict{String, Array{Float64,1}}}()

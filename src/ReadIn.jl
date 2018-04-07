@@ -24,6 +24,13 @@ struct RawData
     dyes    :: Array{Dye, 1}
 end
 
+struct NeoData
+    exratio :: Dict
+    emratio :: Dict
+    markers :: Array{Symbol,1}
+    dyes    :: Array{Dye, 1}
+end
+
 export get_normalized_data
 
 function get_dye_brightness(dye_list; default_brightness=3)
@@ -194,25 +201,27 @@ function generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
 end
 
 function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
-    fcm_device::Device.FCMDevice; export_to=nothing)
+    fcm_device::Device.FCMDevice; export_to=nothing, format=".jld")
     preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
-    if !isfile(preserved_data)
+    if !isfile(preserved_data*format)
         # Generate data
         rawdata = readcsv(excitation_csv, emission_csv, antigens_csv)
         exratio = get_excitation_ratio(fcm_device.lasers, rawdata.exspectrum)
         emratio = get_emission_ratio(fcm_device.lens, rawdata.emspectrum)
 
+        neo_data = NeoData(exratio, emratio, rawdata.markers, rawdata.dyes)
+
         interaction = generate_dyes_interaction(exratio, emratio, rawdata.dyes, fcm_device)
         template = get_template(rawdata.antigens, rawdata.markers,
                                 rawdata.dyes, Device.getlensnumber(fcm_device))
-        store_data(preserved_data, template, interaction, rawdata, export_to=export_to)
+        store_data(preserved_data, template, interaction, neo_data, export_to=export_to)
         println("data stored in: ", preserved_data)
     else
-        rawdata, template, interaction = restore_data(preserved_data)
+        neo_data, template, interaction = restore_data(preserved_data)
         println("data restored from: ", preserved_data)
     end
 
-    return (rawdata, template, interaction)
+    return (neo_data, template, interaction)
 end
 
 end  # module ReadIn
