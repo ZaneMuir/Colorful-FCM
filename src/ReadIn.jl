@@ -1,5 +1,3 @@
-#include("Device.jl")
-
 module ReadIn
 
 using DataFrames
@@ -10,6 +8,7 @@ using JLD
 # using HDF5
 using Device
 
+include("Export.jl")
 
 struct Dye
     name :: Symbol
@@ -148,11 +147,20 @@ function get_template(antigens, markers, dyes, level=1)
     repeat(template, outer=(1,1,level))
 end
 
-function store_data(name, template, interaction, format=:JLD)
+function store_data(name, template, interaction, rawdata, format=:JLD; export_to=nothing)
+    # result = Dict{Symbol, Dict{Int, Dict{Symbol, Array{Float64,1}}}}()
     if format == :JLD
-        save(name, "template",template, "interaction",interaction)
-    elseif format == :MAT
-        nothing  # TODO: store in MAT format
+        JLD.save(name*".jld", "template",template, "interaction",interaction, "rawdata", rawdata)
+    else
+        throw(ArgumentError("storing format not defined."))
+    end
+
+    if export_to == nothing
+        nothing
+    elseif export_to == :MAT
+        Export.to_mat(name*".mat", template, interaction, rawdata)
+    # elseif format == :HDF5
+    #     Export.to_hdf5(name*".h5", template, interaction, rawdata)
     else
         throw(ArgumentError("storing format not defined."))
     end
@@ -160,8 +168,8 @@ end
 
 function restore_data(filename, format=:JLD)
     if format == :JLD
-        data = load(filename)
-        return data["template"], data["interaction"]
+        data = load(filename*".jld")
+        return data["rawdata"], data["template"], data["interaction"]
     # TODO: restore MAT file
     # TODO: restore HDF5 file
     end
@@ -186,8 +194,8 @@ function generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
 end
 
 function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
-    fcm_device::Device.FCMDevice)
-    preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)*".jld"
+    fcm_device::Device.FCMDevice; export_to=nothing)
+    preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
     if !isfile(preserved_data)
         # Generate data
         rawdata = readcsv(excitation_csv, emission_csv, antigens_csv)
@@ -197,14 +205,14 @@ function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
         interaction = generate_dyes_interaction(exratio, emratio, rawdata.dyes, fcm_device)
         template = get_template(rawdata.antigens, rawdata.markers,
                                 rawdata.dyes, Device.getlensnumber(fcm_device))
-        store_data(preserved_data, template, interaction)
+        store_data(preserved_data, template, interaction, rawdata, export_to=export_to)
         println("data stored in: ", preserved_data)
     else
-        template, interaction = restore_data(preserved_data)
+        rawdata, template, interaction = restore_data(preserved_data)
         println("data restored from: ", preserved_data)
     end
 
-    return (template, interaction)
+    return (rawdata, template, interaction)
 end
 
 end  # module ReadIn
