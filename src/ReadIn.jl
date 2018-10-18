@@ -1,19 +1,17 @@
-module ReadIn
+# ReadIn.jl
+#
+# Raw data read in
+#
+# author: yizhan miao
+# email: yzmiao@protonmail.com
+# last update: Oct 18 2018
 
-using DataFrames
-using CSV
-# using MAT
-using SHA
-using JLD
-# using HDF5
-using Device
-
-include("Export.jl")
 
 struct Dye
     name :: Symbol
     brightness :: Int
 end
+
 
 struct RawData
     exspectrum :: DataFrames.DataFrame
@@ -24,6 +22,7 @@ struct RawData
     dyes    :: Array{Dye, 1}
 end
 
+
 struct NeoData
     exratio :: Dict
     emratio :: Dict
@@ -31,7 +30,6 @@ struct NeoData
     dyes    :: Array{Dye, 1}
 end
 
-export get_normalized_data
 
 function get_dye_brightness(dye_list; default_brightness=3)
     default_chart = Dict()
@@ -47,6 +45,8 @@ function get_dye_brightness(dye_list; default_brightness=3)
         default_chart
     end
 end
+
+
 
 function readcsv(excitation_csv, emission_csv,
     antigens_csv, brightness_csv=nothing)
@@ -223,5 +223,3 @@ function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
 
     return (neo_data, template, interaction)
 end
-
-end  # module ReadIn
