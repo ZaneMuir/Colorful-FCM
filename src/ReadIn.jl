@@ -6,7 +6,6 @@
 # email: yzmiao@protonmail.com
 # last update: Oct 18 2018
 
-
 struct Dye
     name :: Symbol
     brightness :: Int
@@ -57,9 +56,9 @@ function readcsv(excitation_csv, emission_csv,
 
     markernames = [Symbol(item) for item in antigens[:markers]] |> unique
 
-    dyes_em = [item for item in emission.colindex.names
+    dyes_em = [item for item in getfield(emission, :colindex).names
                if item != :Wavelength && item !=:wavelength] |> sort!
-    dyes_ex = [item for item in excitation.colindex.names
+    dyes_ex = [item for item in getfield(excitation, :colindex).names
                if item != :Wavelength && item !=:wavelength] |> sort!
 
     if dyes_em == dyes_ex
@@ -201,8 +200,9 @@ function generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
 end
 
 function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
-    fcm_device::Device.FCMDevice; export_to=nothing, format=".jld")
-    preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
+    fcm_device::FCMDevice; export_to=nothing, format=".jld")
+    #preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
+    preserved_data = ""
     if !isfile(preserved_data*format)
         # Generate data
         rawdata = readcsv(excitation_csv, emission_csv, antigens_csv)
@@ -213,8 +213,8 @@ function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
 
         interaction = generate_dyes_interaction(exratio, emratio, rawdata.dyes, fcm_device)
         template = get_template(rawdata.antigens, rawdata.markers,
-                                rawdata.dyes, Device.getlensnumber(fcm_device))
-        store_data(preserved_data, template, interaction, neo_data, export_to=export_to)
+                                rawdata.dyes, getlensnumber(fcm_device))
+        #store_data(preserved_data, template, interaction, neo_data, export_to=export_to)
         println("data stored in: ", preserved_data)
     else
         neo_data, template, interaction = restore_data(preserved_data)

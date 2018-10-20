@@ -1,6 +1,4 @@
-module Evaluation
 
-export get_result
 
 const alpha_dict = Dict(:normal=>1, :biotin=>4)
 
@@ -57,9 +55,11 @@ end
 
 function findmax_pos(ndarray)
     value, pos = findmax(ndarray)
-    value, (pos % size(ndarray)[1],
-            ceil(pos/size(ndarray)[1]) % size(ndarray)[2] |> Int,
-            ceil(pos/size(ndarray)[1]/size(ndarray)[2]) % size(ndarray)[1] |> Int )
+    # pos = Int(pos)
+    # value, (pos % size(ndarray,1),
+    #         ceil(pos/size(ndarray, 1)) % size(ndarray,2) |> Int,
+    #         ceil(pos/size(ndarray,1)/size(ndarray,2)) % size(ndarray, 1) |> Int )
+    value, pos
 end
 
 
@@ -71,9 +71,11 @@ function get_result(metadata, template, interaction, device, readin_marker_densi
     initiation = initiate_template_matrix(marker_density, template, device, metadata)
 
     for each_epoch in readin_marker_density
+        initiation[isnan.(initiation)] .= -Inf
         value, pos = findmax_pos(initiation)
         choicer = metadata.dyes[pos[2]].name
         choicee = metadata.markers[pos[1]]
+
         result[choicee] = (choicer, value)
 
         initiation[:,pos[2],:] = NaN
@@ -87,8 +89,8 @@ function get_result(metadata, template, interaction, device, readin_marker_densi
                 initiation[:,:,template_n] .*= applyer'
             end
         end
+
+        println(choicee)
     end
     result
 end
-
-end  # module Evaluation

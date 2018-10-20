@@ -4,8 +4,12 @@ using DataFrames
 using CSV
 
 include("Device.jl")
+include("ReadIn.jl")
+include("Evaluation.jl")
 
 export ThermoFisherDevice
+export get_normalized_data
+export get_result
 
 
 
