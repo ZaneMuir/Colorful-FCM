@@ -1,19 +1,16 @@
-module ReadIn
-
-using DataFrames
-using CSV
-# using MAT
-using SHA
-using JLD
-# using HDF5
-using Device
-
-include("Export.jl")
+# ReadIn.jl
+#
+# Raw data read in
+#
+# author: yizhan miao
+# email: yzmiao@protonmail.com
+# last update: Oct 18 2018
 
 struct Dye
     name :: Symbol
     brightness :: Int
 end
+
 
 struct RawData
     exspectrum :: DataFrames.DataFrame
@@ -24,6 +21,7 @@ struct RawData
     dyes    :: Array{Dye, 1}
 end
 
+
 struct NeoData
     exratio :: Dict
     emratio :: Dict
@@ -31,7 +29,6 @@ struct NeoData
     dyes    :: Array{Dye, 1}
 end
 
-export get_normalized_data
 
 function get_dye_brightness(dye_list; default_brightness=3)
     default_chart = Dict()
@@ -48,6 +45,8 @@ function get_dye_brightness(dye_list; default_brightness=3)
     end
 end
 
+
+
 function readcsv(excitation_csv, emission_csv,
     antigens_csv, brightness_csv=nothing)
 
@@ -57,9 +56,9 @@ function readcsv(excitation_csv, emission_csv,
 
     markernames = [Symbol(item) for item in antigens[:markers]] |> unique
 
-    dyes_em = [item for item in emission.colindex.names
+    dyes_em = [item for item in getfield(emission, :colindex).names
                if item != :Wavelength && item !=:wavelength] |> sort!
-    dyes_ex = [item for item in excitation.colindex.names
+    dyes_ex = [item for item in getfield(excitation, :colindex).names
                if item != :Wavelength && item !=:wavelength] |> sort!
 
     if dyes_em == dyes_ex
@@ -84,7 +83,7 @@ end
 function get_excitation_ratio(lasers, dye_excitation)
     result = Dict()
     for (laser_name, laser_lambda) in lasers
-        index = find(x->x==laser_lambda, dye_excitation[:Wavelength])[1]
+        index = findall(x->x==laser_lambda, dye_excitation[:Wavelength])[1]
         target = dye_excitation[index, :]
         result[laser_name] = target
     end
@@ -96,7 +95,7 @@ function get_emission_ratio(lens, dye_emission)
     for (laser_name, ports) in lens
         port_result = Dict()
         for (target, range) in ports
-            ranger = find(x->(target-range)<=x<=(target+range), dye_emission[:Wavelength])
+            ranger = findall(x->(target-range)<=x<=(target+range), dye_emission[:Wavelength])
             port_result[target] = dye_emission[ranger[1]:ranger[end],2:end]
         end
         result[laser_name] = port_result
@@ -201,8 +200,9 @@ function generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
 end
 
 function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
-    fcm_device::Device.FCMDevice; export_to=nothing, format=".jld")
-    preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
+    fcm_device::FCMDevice; export_to=nothing, format=".jld")
+    #preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
+    preserved_data = ""
     if !isfile(preserved_data*format)
         # Generate data
         rawdata = readcsv(excitation_csv, emission_csv, antigens_csv)
@@ -213,8 +213,8 @@ function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
 
         interaction = generate_dyes_interaction(exratio, emratio, rawdata.dyes, fcm_device)
         template = get_template(rawdata.antigens, rawdata.markers,
-                                rawdata.dyes, Device.getlensnumber(fcm_device))
-        store_data(preserved_data, template, interaction, neo_data, export_to=export_to)
+                                rawdata.dyes, getlensnumber(fcm_device))
+        #store_data(preserved_data, template, interaction, neo_data, export_to=export_to)
         println("data stored in: ", preserved_data)
     else
         neo_data, template, interaction = restore_data(preserved_data)
@@ -223,5 +223,3 @@ function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
 
     return (neo_data, template, interaction)
 end
-
-end  # module ReadIn
