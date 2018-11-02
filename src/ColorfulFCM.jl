@@ -1,5 +1,6 @@
 module ColorfulFCM
 
+using Statistics
 using DataFrames
 using CSV
 
@@ -9,7 +10,7 @@ include("Evaluation.jl")
 
 export ThermoFisherDevice
 export get_normalized_data
-export get_result
+export get_result!
 
 
 

@@ -83,7 +83,7 @@ end
 function get_excitation_ratio(lasers, dye_excitation)
     result = Dict()
     for (laser_name, laser_lambda) in lasers
-        index = find(x->x==laser_lambda, dye_excitation[:Wavelength])[1]
+        index = findall(x->x==laser_lambda, dye_excitation[:Wavelength])[1]
         target = dye_excitation[index, :]
         result[laser_name] = target
     end
@@ -95,7 +95,7 @@ function get_emission_ratio(lens, dye_emission)
     for (laser_name, ports) in lens
         port_result = Dict()
         for (target, range) in ports
-            ranger = find(x->(target-range)<=x<=(target+range), dye_emission[:Wavelength])
+            ranger = findall(x->(target-range)<=x<=(target+range), dye_emission[:Wavelength])
             port_result[target] = dye_emission[ranger[1]:ranger[end],2:end]
         end
         result[laser_name] = port_result

@@ -61,9 +61,10 @@ function findmax_pos(ndarray)
     #         ceil(pos/size(ndarray,1)/size(ndarray,2)) % size(ndarray, 1) |> Int )
     value, pos
 end
+        
 
 
-function get_result(metadata, template, interaction, device, readin_marker_density)
+function get_result!(metadata, template, interaction, device, readin_marker_density)
 
     result = Dict{Symbol, Tuple{Symbol, Float64}}()
     choicer = :unkown
@@ -71,15 +72,15 @@ function get_result(metadata, template, interaction, device, readin_marker_densi
     initiation = initiate_template_matrix(marker_density, template, device, metadata)
 
     for each_epoch in readin_marker_density
-        initiation[isnan.(initiation)] .= -Inf
+        initiation[isnan.(initiation)] .= 0.0
         value, pos = findmax_pos(initiation)
         choicer = metadata.dyes[pos[2]].name
         choicee = metadata.markers[pos[1]]
 
         result[choicee] = (choicer, value)
 
-        initiation[:,pos[2],:] = NaN
-        initiation[pos[1],:,:] = NaN
+        initiation[:,pos[2],:] .= 0.0
+        initiation[pos[1],:,:] .= 0.0
 
         template_n = 0
         for (each_laser, ports) in device.lens
@@ -89,8 +90,6 @@ function get_result(metadata, template, interaction, device, readin_marker_densi
                 initiation[:,:,template_n] .*= applyer'
             end
         end
-
-        println(choicee)
     end
     result
 end
