@@ -136,7 +136,7 @@ function generate_dyes_interaction(excite_ratio, emit_ratio, dyes, fcm_device)
 end
 
 function get_template(antigens, markers, dyes, level=1)
-    template = zeros(length(markers), length(dyes))
+    template = zeros(length(markers), length(dyes), 1)
     dyes_list = [item.name for item in dyes]
     for i=1:length(antigens[:,1])
         a1 = indexin([antigens[i,:markers] |> Symbol], markers)[1]
@@ -146,10 +146,10 @@ function get_template(antigens, markers, dyes, level=1)
             continue
         end
 
-        template[a1, a2] = 1
+        template[a1, a2, 1] = 1
     end
     template
-    [sum(template[i,:]) == 1 && (template[i,:]*=999) for i =1:size(template)[1]]
+    [sum(template[i,:, 1]) == 1 && (template[i, :, 1]*=999) for i =1:size(template)[1]]
     repeat(template, outer=(1,1,level))
 end
 
