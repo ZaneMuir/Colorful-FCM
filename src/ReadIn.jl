@@ -202,7 +202,7 @@ end
 function get_normalized_data(excitation_csv, emission_csv, antigens_csv,
     fcm_device::FCMDevice; export_to=nothing, format=".jld")
     #preserved_data = generate_compact_sha(excitation_csv, emission_csv, antigens_csv)
-    preserved_data = ""
+    preserved_data = " "
     if !isfile(preserved_data*format)
         # Generate data
         rawdata = readcsv(excitation_csv, emission_csv, antigens_csv)
