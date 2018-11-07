@@ -3,14 +3,18 @@ module ColorfulFCM
 using Statistics
 using DataFrames
 using CSV
+using Query
+using Combinatorics
 
 include("Device.jl")
-include("ReadIn.jl")
-include("Evaluation.jl")
+# include("ReadIn.jl")
+# include("Evaluation.jl")
+include("SparseSolution.jl")
 
 export ThermoFisherDevice
-export get_normalized_data
-export get_result!
+# export get_normalized_data
+# export get_result!
+export get_interaction_sheet, solve
 
 
 
